@@ -100,6 +100,9 @@ class MelSpectrum(BaseFrontend):
     hparams.add_hparam('filterbank_channel_count', filterbank_channel_count)
     hparams.add_hparam('sample_rate', sample_rate)
 
+    if config is not None:
+      hparams.override_from_dict(config)
+
     return hparams
 
   def call(self, audio_data, sample_rate):
