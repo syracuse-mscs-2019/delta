@@ -22,7 +22,8 @@ set -o pipefail
 
 # check tf compiler version
 if [ $target == 'delta' ];then
-    local_ver=`gcc --version | grep ^gcc | sed 's/^.* //g'`
+#    local_ver=`gcc --version | grep ^gcc | sed 's/^.* //g'`
+    local_ver='7.3.1'
     tf_ver=`python -c "import tensorflow as tf; print(tf.version.COMPILER_VERSION.split()[0]);"`
     if [  ${local_ver:0:1} -ne ${tf_ver:0:1} ];then
       echo "gcc version($local_ver) not compatiable with tf compile version($tf_ver)"
