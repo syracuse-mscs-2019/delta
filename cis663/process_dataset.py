@@ -50,7 +50,7 @@ FEAT_CONFIG = {                     # Config object for buildng features
 #    idx - The suspected idx of the next file
 # ==============================================================================
 def get_next_file_name(data_path, idx):
-    is_good = FalseProcessing file  288  of  536
+    is_good = False
     file_path = data_path + '_' + str(idx).zfill(3) + '.wav'
 
     # Give it 3 attempts to find a good file because some file ids are missing
@@ -70,7 +70,7 @@ def get_next_file_name(data_path, idx):
 # ==============================================================================
 # Description:
 #    This function loads the original waveforms and then blocks them into the  
-# specified number of blocks each of a specified length.
+# specified number of blocks eccach of a specified length.
 #
 # Inputs:
 #    data_path - The path where files are stored
@@ -220,6 +220,7 @@ def expand_data_set(df_data):
     df_exp = pd.DataFrame({}, columns=['Match','FileName1', 'FileName2'])
     l = df_data.shape[0]
     for i in range(0, l):
+        print('     Processing Row',i)
         subj = df_data.at[i, 'Subject']
         for j in range(0, l):
             if i != j:
@@ -275,7 +276,8 @@ def create_train_test_files(data_path, df_files, train_subj):
     df_test_exp = expand_data_set(df_test)
 
     # Write the files to a file
-    df_train_exp.to_csv('./trainset.csv')
+    df_train.to_csv('./trainset.csv')
+    df_train_exp.to_csv('./trainset_opt2.csv')
     df_test_exp.to_csv('./testset.csv')
 
     return
