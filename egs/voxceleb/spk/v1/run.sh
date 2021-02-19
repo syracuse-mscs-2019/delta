@@ -25,7 +25,7 @@ musan_root=/export/corpora/JHU/musan
 stage=0
 
 if [ $stage -le 0 ]; then
-  local/make_voxceleb2.pl $voxceleb2_root dev data/voxceleb2_train
+  perl local/make_voxceleb2.pl $voxceleb2_root dev data/voxceleb2_train
   local/make_voxceleb2.pl $voxceleb2_root test data/voxceleb2_test
   # This script creates data/voxceleb1_test and data/voxceleb1_train for latest version of VoxCeleb1.
   # Our evaluation set is the test portion of VoxCeleb1.

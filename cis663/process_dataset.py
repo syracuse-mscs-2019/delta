@@ -34,6 +34,10 @@ FEAT_CONFIG = {                     # Config object for buildng features
     'feature_size': 40
 }
 
+if os.path.exists(WORK_PATH) is False:
+    os.makedirs(WORK_PATH)          # Create paths that do not exist
+if os.path.exists(FEAT_PATH) is False:
+    os.makedirs(FEAT_PATH)          # Create paths that do not exist
 
 # ==============================================================================
 # Description:
