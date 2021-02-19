@@ -26,7 +26,7 @@ WORK_PATH = '../../data/working'    # Working folder to use for blocks.
 FEAT_PATH = './fbanks'              # folder to output the feature files to.
 FILE_LEN = 60                       # Length is in seconds
 TRAIN_SUBJ = 78                     # Number of subjects for the training set
-BLOCKS = 5                          # Number of blocks for each subject
+BLOCKS = 20                         # Number of blocks for each subject
 FEAT_CONFIG = {                     # Config object for buildng features
     'sample_rate': 48000,
     'window_length': 0.025,
@@ -143,12 +143,8 @@ def prep_wave_files(data_path, working_path, blocks, len_sec):
                     bcnt = bcnt + 1
 
                     # Append the file to the list of files created
-                    obj = {
-                        'Subject': subject_id, 
-                        'FileName': out_file_name
-                    }
-                    files = files.append(obj, ignore_index=True)
-                    
+                    obj = pd.DataFrame({'Subject': [subject_id], 'FileName': [out_file_name]})
+                    files = pd.concat([files, obj], ignore_index=True, axis=0)
             else:
                 done = True
 
@@ -222,14 +218,16 @@ def expand_data_set(df_data):
     for i in range(0, l):
         print('     Processing Row',i)
         subj = df_data.at[i, 'Subject']
+        df_sub = pd.DataFrame({}, columns=['Match','FileName1', 'FileName2'])
         for j in range(0, l):
             if i != j:
-                obj = {
-                    'Match': (df_data.at[i, 'Subject'] == df_data.at[j, 'Subject']), 
-                    'FileName1': df_data.at[i, 'FileName'],
-                    'FileName2': df_data.at[j, 'FileName']
-                }
-                df_exp = df_exp.append(obj, ignore_index=True)
+                obj = pd.DataFrame({
+                    'Match': [df_data.at[i, 'Subject'] == df_data.at[j, 'Subject']], 
+                    'FileName1': [df_data.at[i, 'FileName']],
+                    'FileName2': [df_data.at[j, 'FileName']]
+                })
+                df_sub = pd.concat([df_sub, obj], ignore_index=True, axis=0)
+        df_exp = pd.concat([df_exp, df_sub], ignore_index=True, axis=0)
 
     return df_exp
 
@@ -263,10 +261,10 @@ def create_train_test_files(data_path, df_files, train_subj):
         f = df_files[df_files['Subject']==s]
         if i < train_subj:
             # Get all subjects matching this ID.
-            df_train = df_train.append(f, ignore_index=True)
+            df_train = pd.concat([df_train, f], ignore_index=True, axis=0)
         else:
             # Output to the test set
-            df_test = df_test.append(f, ignore_index=True)
+            df_test = pd.concat([df_test, f], ignore_index=True, axis=0)
     
     # Next we have to create the expanded files
     print('Expanding the training set')
