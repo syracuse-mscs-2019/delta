@@ -13,6 +13,8 @@ import os
 import numpy as np
 import pandas as pd
 import wave
+import audioop
+import collections
 
 from pathlib import Path
 from delta.data.feat import speech_feature
@@ -26,9 +28,9 @@ WORK_PATH = '../../data/working'    # Working folder to use for blocks.
 FEAT_PATH = './fbanks'              # folder to output the feature files to.
 FILE_LEN = 60                       # Length is in seconds
 TRAIN_SUBJ = 78                     # Number of subjects for the training set
-BLOCKS = 20                         # Number of blocks for each subject
+BLOCKS = 10                         # Number of blocks for each subject
 FEAT_CONFIG = {                     # Config object for buildng features
-    'sample_rate': 48000,
+    'sample_rate': 8000,
     'window_length': 0.025,
     'window_step': 0.010,
     'feature_size': 40
@@ -86,9 +88,12 @@ def get_next_file_name(data_path, idx):
 #    DataFrame containing the subject ID and file name for each file created.
 # ==============================================================================
 def prep_wave_files(data_path, working_path, blocks, len_sec):
+    # Define named tuple
+    wparams = collections.namedtuple('WParams', 'nchannels sampwidth, framerate, nframes, comptype, compname')
+
     files = pd.DataFrame({}, columns=['Subject','FileName'])
 
-    # Get a listing of all dir entries in the data_path    
+    # Get a listing of all dir entries in the datapath    
     entries = os.scandir(data_path)
 
     # Each directory represents a subject.  We need to load those files an build
@@ -112,23 +117,31 @@ def prep_wave_files(data_path, working_path, blocks, len_sec):
                 # read in the file
                 wf = wave.open(in_file_name, 'rb')
 
+                # Downsample it
+                p = wf.getparams()
+                data = wf.readframes(wf.getnframes())
+                converted = audioop.ratecv(data, p.sampwidth, p.nchannels, p.framerate, 8000, None)
+
+                # Calcualate new parameters
+                np = wparams(nchannels=p.nchannels, sampwidth=p.sampwidth, framerate=8000, nframes=p.nframes, comptype=p.comptype, compname=p.compname)
+
                 # Append it to the working stream
-                audiof.append([wf.getparams(), wf.readframes(wf.getnframes())])
-                sr = wf.getparams().framerate
+                audiof.append([np, converted[0]])
+                sr = 8000
                 wf.close()
 
                 # Check to see if we have exceeded 60 seconds yet
                 length = 0
                 for i in range(0,len(audiof)):
-                    length = length + audiof[i][0].nframes
+                    length = length + len(audiof[i][1])
 
-                if length > len_sec*sr:
+                if length > len_sec*sr*2:
                     print('    writing block: ', bcnt)
 
                     # Calculate important parameters for writing the file
                     l_block = len(audiof)-1
-                    l_block_overlow = (length-len_sec*sr)
-                    l_block_len = (audiof[l_block][0].nframes-l_block_overlow) * audiof[l_block][0].sampwidth
+                    l_block_overflow = (length-len_sec*sr*2)
+                    l_block_len = len(audiof[l_block][1])-l_block_overflow
 
                     # Write the block
                     output = wave.open(out_file_name, 'wb')
@@ -141,9 +154,7 @@ def prep_wave_files(data_path, working_path, blocks, len_sec):
 
                     # Increment the block count
                     # Save the remainder
-                    naudiof = []
-                    naudiof.append([audiof[l_block][0], audiof[l_block][1][l_block_len:]])
-                    audiof = naudiof
+                    audiof = []
                     bcnt = bcnt + 1
 
                     # Append the file to the list of files created
@@ -198,6 +209,7 @@ def create_feature_files(data_path, output_path, df_files, feat_config):
 
         # Move the file to the feature path
         dest_file = output_path + '/' + os.path.basename(feat_file)
+        data = np.load(feat_file)
         os.rename(feat_file, dest_file)
 
         # Replace the file name with the feature file name
