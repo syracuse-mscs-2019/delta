@@ -110,14 +110,14 @@ def getFeatures(fileName, func_config):
 
             if Path(fName).exists():
                 if(feat == 1):
-                    speech_feature.extract_feature(fName,
+                    speech_feature.extract_feature(fName, # delta method to get numerics from wav files
                                     winlen=wlen,
                                     winstep=wstep,
                                     sr=srate,
                                     feature_size=fsize,
                                     feature_name='fbank')
                 else:
-                    speech_feature.extract_feature(fName,
+                    speech_feature.extract_feature(fName, # same as above, but much larger data
                                     winlen=wlen,
                                     winstep=wstep,
                                     sr=srate,

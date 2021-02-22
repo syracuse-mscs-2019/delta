@@ -21,13 +21,13 @@ def load_data(input_file):
     dfFiles = dfData['FileName']
 
     le = LabelEncoder()
-    targets = le.fit_transform(dfLabels)
+    targets = le.fit_transform(dfLabels) # transforms subject names into a unique id, in all cases
 
     inputs = []
     for i in range(0, dfFiles.shape[0]):
         inputs.append(get_fbank(dfFiles.at[i]))
     inputs = np.stack(inputs)
-
+    # create categorical inputs for fit function
     return inputs, tf.keras.utils.to_categorical(targets), len(np.unique(targets))
 
 # Load up the config that Delta uses when creating the model
